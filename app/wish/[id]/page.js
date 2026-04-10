@@ -99,7 +99,8 @@ export default function WishExperiencePage({ params }) {
   // Open Gift
   const handleOpenGift = () => {
      setHasOpenedGift(true);
-     setLitCandles(wishData.age); 
+     // Capping the literal amount of candles to a maximum of 5 so it never looks cluttered
+     setLitCandles(Math.min(wishData.age, 5)); 
      
      if (wishData.music_url && wishData.music_url !== 'preset') {
         if (audioRef.current) {
@@ -188,7 +189,7 @@ export default function WishExperiencePage({ params }) {
             {/* Cake Section with proper visual boundaries */}
             <div className="py-2 w-full flex justify-center">
                 <BirthdayCake 
-                  candles={wishData.age} 
+                  candles={Math.min(wishData.age, 5)} 
                   litCandlesCount={litCandles} 
                   isFlickering={isBlowing || (blowIntensity > 4)} 
                 />
