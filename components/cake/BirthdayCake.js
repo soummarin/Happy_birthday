@@ -5,41 +5,47 @@ import { motion } from "framer-motion";
 
 export default function BirthdayCake({ candles = 3, litCandlesCount = 3, isFlickering = false }) {
   
-  // Distribute candles nicely across the top tier, handling large numbers
+  // Distribute candles nicely across the top tier, ensuring they are bounded within the cake width
   const getCandlePositions = () => {
     const positions = [];
-    const width = 140; // max spread
     
-    // Determine number of rows based on candle count
-    const rows = candles > 20 ? 3 : candles > 10 ? 2 : 1;
+    // Hard restrict visual candles so it's always elegant (max 6)
+    const displayCandles = Math.min(candles, 6);
     
-    for (let i = 0; i < candles; i++) {
+    // Top tier has rx=60. The max safe width is ~70 to avoid floating off edges
+    const width = displayCandles > 1 ? 70 : 0; 
+    
+    const rows = 1; // Enforce single row for elegant design when capped
+    
+    for (let i = 0; i < displayCandles; i++) {
         // distribute across rows roughly evenly
-        const rowIndex = i % rows;
-        const itemsInThisRow = Math.ceil(candles / rows);
-        const colIndex = Math.floor(i / rows);
+        const rowIndex = 0;
+        const itemsInThisRow = displayCandles;
+        const colIndex = i;
         
-        const rowWidth = width - (rowIndex * 30); // back rows are slightly narrower
+        const rowWidth = width;
         const step = rowWidth / Math.max(1, (itemsInThisRow - 1));
         
         let x;
         if (itemsInThisRow === 1) {
             x = 0;
         } else {
+            // center around 0
             x = - (rowWidth / 2) + (step * colIndex);
         }
 
-        // Add some noise to x and y for natural look
-        const jitterX = (Math.random() - 0.5) * 8;
-        
-        // Z-depth via Y coordinate: back rows are higher in the SVG (lower Y value)
-        // Also base Y follows a slight arc
-        const baseY = -140 - (rowIndex * 15);
-        const arcY = Math.abs(x) * 0.08;
-        
+        // Base Y needs to sit perfectly on the cy="-100" top tier ellipse.
+        // Candle body goes from 0 to 45. Base of candle is at y+45
+        // If we want y+45 = -100, then y should be -145.
+        // We add slight arc for 3D realism
+        const baseY = -145;
+        const arcY = Math.pow(Math.abs(x), 1.5) * 0.02; // better natural curve
         const y = baseY + arcY;
+
+        // Add subtle rotation based on x coordinate so they spray outwards
+        const angle = x * 0.15; 
         
-        positions.push({ x: x + jitterX, y, layer: rows - rowIndex });
+        positions.push({ x: x, y, angle, layer: 1 });
     }
     
     // Sort by layer so front candles render last (on top)
@@ -49,7 +55,7 @@ export default function BirthdayCake({ candles = 3, litCandlesCount = 3, isFlick
   const candlePositions = getCandlePositions();
 
   return (
-    <div className="relative w-full max-w-sm mx-auto aspect-square flex items-center justify-center">
+    <div className="relative w-64 md:w-80 mx-auto aspect-square flex items-center justify-center">
       <svg viewBox="-150 -200 300 300" className="w-full h-full drop-shadow-2xl overflow-visible">
         <defs>
           <linearGradient id="candle-gradient" x1="0" y1="0" x2="1" y2="0">
@@ -115,23 +121,11 @@ export default function BirthdayCake({ candles = 3, litCandlesCount = 3, isFlick
             y={pos.y} 
             isLit={index < litCandlesCount} 
             isFlickering={isFlickering}
+            angle={pos.angle}
             delay={0.8 + (index * 0.05)} 
           />
         ))}
 
-        {/* Glow behind candles if any are lit */}
-        {litCandlesCount > 0 && (
-          <ellipse 
-            cx="0" 
-            cy="-150" 
-            rx="100" 
-            ry="50" 
-            fill="#f59e0b" 
-            opacity="0.15" 
-            filter="blur(20px)" 
-            className="animate-pulse-glow-gold pointer-events-none"
-          />
-        )}
       </svg>
     </div>
   );
