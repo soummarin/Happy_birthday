@@ -2,14 +2,16 @@
 
 import { motion } from "framer-motion";
 
-export default function Candle({ isLit, isFlickering, x, y, delay = 0 }) {
+export default function Candle({ isLit, isFlickering, x, y, delay = 0, angle = 0 }) {
   return (
     <motion.g
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5, type: "spring" }}
-      style={{ transform: `translate(${x}px, ${y}px)` }}
+      initial={{ opacity: 0, x: x, y: y - 50, rotate: 0 }}
+      animate={{ opacity: 1, x: x, y: y, rotate: angle }}
+      transition={{ delay, duration: 0.8, type: "spring", bounce: 0.4 }}
+      style={{ transformOrigin: "0px 45px" }} // Anchor rotation perfectly at the base of the candle
     >
+      {/* Anchor Shadow on Cake (Flat rendering, no blur bug) */}
+      <ellipse cx="0" cy="45" rx="7" ry="2" fill="rgba(190, 24, 93, 0.5)" />
       {/* Candle Body */}
       <rect x="-6" y="0" width="12" height="45" rx="3" fill="url(#candle-gradient)" />
       
